@@ -21,8 +21,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import com.example.android.guesstheword.R
@@ -53,49 +55,50 @@ class GameFragment : Fragment() {
         Log.i("Game fragment", "called ViewModelProviders.of()")
         gameViewModel = ViewModelProviders.of(this).get(GameViewModel::class.java)
 
+        /** Setting up LiveData observation relationship **/
+        gameViewModel.score.observe(this, Observer { newScore ->
+            binding.scoreText.text = newScore.toString()
+        })
+
+        gameViewModel.word.observe(this, Observer { newWord -> binding.wordText.text = newWord })
+
+        gameViewModel.eventGameFinished.observe(this, Observer { hasFinished ->
+            if(hasFinished) gameFinished()
+        })
 
 
         binding.correctButton.setOnClickListener { onCorrect() }
         binding.skipButton.setOnClickListener { onSkip() }
         binding.endGameButton.setOnClickListener { endGame() }
-        updateScoreText()
-        updateWordText()
+
         return binding.root
 
     }
 
-
-
     /** Methods for buttons presses **/
 
     private fun onSkip() {
-       gameViewModel.onSkip()
-        updateScoreText()
-        updateWordText()
+        gameViewModel.onSkip()
+
     }
 
     private fun onCorrect() {
-       gameViewModel.onCorrect()
-        updateScoreText()
-        updateWordText()
+        gameViewModel.onCorrect()
+
     }
 
 
     /** Methods for updating the UI **/
 
-    private fun updateWordText() {
-        binding.wordText.text = gameViewModel.word
-    }
 
-    private fun updateScoreText() {
-        binding.scoreText.text = gameViewModel.score.toString()
-    }
-
-    private fun endGame(){
+    private fun endGame() {
         gameFinished()
     }
-    private fun gameFinished(){
-        val action = GameFragmentDirections.actionGameToScore(gameViewModel.score)
+
+    private fun gameFinished() {
+        val action = GameFragmentDirections.actionGameToScore(gameViewModel.score.value ?: 0)
         findNavController().navigate(action)
+        gameViewModel.onGameFinishComplete()
+
     }
 }
