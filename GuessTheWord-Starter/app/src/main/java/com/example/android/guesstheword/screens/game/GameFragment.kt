@@ -52,48 +52,35 @@ class GameFragment : Fragment() {
                 false
         )
 
-        Log.i("Game fragment", "called ViewModelProviders.of()")
+
         gameViewModel = ViewModelProviders.of(this).get(GameViewModel::class.java)
 
+        // Set the viewmodel for databinding - this allows the bound layout access
+        // to all the data in the ViewModel
+        binding.gameViewModel = gameViewModel
+        // Specify the current activity as the lifecycle owner of the binding.
+        // This is used so that the binding can observe LiveData updates
+        binding.lifecycleOwner = this
         /** Setting up LiveData observation relationship **/
         gameViewModel.score.observe(this, Observer { newScore ->
             binding.scoreText.text = newScore.toString()
         })
 
-        gameViewModel.word.observe(this, Observer { newWord -> binding.wordText.text = newWord })
+
 
         gameViewModel.eventGameFinished.observe(this, Observer { hasFinished ->
             if(hasFinished) gameFinished()
         })
 
 
-        binding.correctButton.setOnClickListener { onCorrect() }
-        binding.skipButton.setOnClickListener { onSkip() }
-        binding.endGameButton.setOnClickListener { endGame() }
 
         return binding.root
 
     }
 
-    /** Methods for buttons presses **/
-
-    private fun onSkip() {
-        gameViewModel.onSkip()
-
-    }
-
-    private fun onCorrect() {
-        gameViewModel.onCorrect()
-
-    }
 
 
-    /** Methods for updating the UI **/
 
-
-    private fun endGame() {
-        gameFinished()
-    }
 
     private fun gameFinished() {
         val action = GameFragmentDirections.actionGameToScore(gameViewModel.score.value ?: 0)

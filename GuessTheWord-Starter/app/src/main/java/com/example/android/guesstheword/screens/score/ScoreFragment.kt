@@ -51,16 +51,18 @@ class ScoreFragment : Fragment() {
                 false
         )
         scoreViewModelFactory = ScoreViewModelFactory(ScoreFragmentArgs.fromBundle(arguments!!).score)
+
         /**
          *  Call the ViewModelProviders.of() method, pass in the associated score fragment context and viewModelFactory.
          *  This will create the ScoreViewModel object using the factory method defined in the viewModelFactory class.
          */
         scoreViewModel = ViewModelProviders.of(this, scoreViewModelFactory).get(ScoreViewModel::class.java)
+        binding.scoreViewModel = scoreViewModel
+        // Specify the current activity as the lifecycle owner of the binding.
+        // This is used so that the binding can observe LiveData updates
+        binding.lifecycleOwner = this
 
-        //adding observer for score
-        scoreViewModel.score.observe(this, Observer {
-            newScore -> binding.scoreText.text = newScore.toString()
-        })
+
 
         scoreViewModel.eventPlay.observe(this, Observer {
             playAgain ->
@@ -71,7 +73,7 @@ class ScoreFragment : Fragment() {
 
         })
 
-        binding.playAgainButton.setOnClickListener { scoreViewModel.onPlayAgain() }
+
         return binding.root
     }
 }
